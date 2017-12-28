@@ -15,52 +15,27 @@ typedef struct {
 	unsigned int ytamanho;
 } MUNDO;
 
+/* Gerar o local onde os agentes vão fazer spawn */
+void geraLocal(int xdim, int ydim);
+
 int main() {
-	unsigned int xdim = 20;
-	unsigned int ydim = 20;
-	unsigned int contador = 0;
-	unsigned int contador2 = 0;
-
-
-	// N. de personagens
-	unsigned int nagentes = 0;
-
 	// Inicializa o n. aleatorio
 	srand(time(NULL));
 
-	for (unsigned int x = 0; x < xdim; x++) {
+	int xdim = 20;
+	int ydim = 20;
+	unsigned int contador2 = 0;
 
-		for (unsigned int y = 0; y < ydim; y++) {
-
-			unsigned int tipo = 0;
-			unsigned int jogavel = 0;
-			unsigned int id = 0;
-			contador++;
-
-			// Define a probabilidade
-			unsigned char probabilidade = rand() % 100;
-
-			if (probabilidade < 5 && nagentes < 20) {
-				tipo = (rand() % 2 == 0) ? 1 : 2;
-
-				id = nagentes++;
-			}
-
-			agente[contador].tipo = tipo;
-			agente[contador].jogavel = jogavel;
-			agente[contador].id = id;
-		}
-
-	}
+	geraLocal(xdim, ydim);
 
 	/*o_meu_mundo.grelha = (AGENTE *) grelha_agente;
 
 	o_meu_mundo.xtamanho = xdim;
 	o_meu_mundo.ytamanho = ydim;*/
 
-	for (unsigned int xi = 0; xi < xdim; xi++) {
+	for (int xi = 0; xi < xdim; xi++) {
 		
-		for (unsigned int yi = 0; yi < ydim; yi++) {
+		for (int yi = 0; yi < ydim; yi++) {
 
 			contador2++;
 			unsigned int celula = agente[contador2].tipo;
@@ -91,4 +66,36 @@ int main() {
 	}
 
 	return 0;
+}
+
+void geraLocal(int xdim, int ydim) {
+	int contador = 0;
+
+	// N. de personagens
+	unsigned int nagentes = 0;
+
+	for (int x = 0; x < xdim; x++) {
+
+		for (int y = 0; y < ydim; y++) {
+
+			unsigned int tipo = 0;
+			unsigned int jogavel = 0;
+			unsigned int id = 0;
+			contador++;
+
+			// Define a probabilidade
+			unsigned char probabilidade = rand() % 100;
+
+			if (probabilidade < 10 && nagentes < 20) {
+				tipo = (rand() % 2 == 0) ? 1 : 2;
+
+				id = nagentes++;
+			}
+
+			agente[contador].tipo = tipo;
+			agente[contador].jogavel = jogavel;
+			agente[contador].id = id;
+		}
+
+	}
 }
