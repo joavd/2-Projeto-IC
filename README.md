@@ -32,4 +32,5 @@ Yada
 
 ## Referências
 
-Yada
+* <a name="ref1">\[1\]</a> Pereira, A. (2017). C e Algoritmos, 2ª edição. Sílabo.
+* <a name="ref2">\[2\]</a> "benhoyt" . [Simple .INI file parser in C](https://github.com/benhoyt/inih), GitHub.
