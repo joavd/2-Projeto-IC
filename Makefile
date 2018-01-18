@@ -25,15 +25,26 @@ PROGRAM=example
 ### Rules to build our example
 ###
 
+all: ini_example $(PROGRAM)
+
 # Rule to generate executable program - by default first target in the makefile
 # is generated when "make" is executed. Because no explicit recipe is given,
 # the "make" program will use the implicit rule for linking all object files
 # into an executable program.
 $(PROGRAM): $(PROGRAM).o showworld_simple.o
 
+ini_example: ini_example.o ini.o
+
+ini_example.o: ini_example.c ini.h
+
+ini.o: ini.c ini.h
+
 # Rule to generate program object. Again, because no explicit recipe is given,
 # "make" will use an implicit rule for properly compiling $(PROGRAM).o.
 $(PROGRAM).o: $(PROGRAM).c showworld.h
+
+#inih: ini.c ini_example.c
+#	$(CC) -o ini ini.c ini_example.c
 
 # Rule to generate showworld_simple.o object. Again, because no explicit recipe
 # is given, "make" will use an implicit rule for properly compiling
