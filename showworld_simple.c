@@ -33,6 +33,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+
 /* The implementation of `SHOWWORLD` type used in this simple text-based world
  * visualization code. In this simple case, we only need to keep track of the
  * world dimensions and of the function pointer which knows how to read an
@@ -52,12 +55,12 @@ struct showworld {
  * This function obeys the `showworld_new()` prototype defined in
  * `showworld.h`. */
 SHOWWORLD *showworld_new(
-    unsigned int xdim,
-    unsigned int ydim,
-    get_agent_info_at aginfo_func) {
+        unsigned int xdim,
+        unsigned int ydim,
+        get_agent_info_at aginfo_func) {
 
     SHOWWORLD *sw = NULL;
-    sw = malloc(sizeof(SHOWWORLD));
+    sw = malloc(sizeof (SHOWWORLD));
     sw->xdim = xdim;
     sw->ydim = ydim;
     sw->aginfo_func = aginfo_func;
@@ -101,12 +104,12 @@ void showworld_update(SHOWWORLD *sw, void *w) {
             /* Determine the agent type. */
             switch (ag_type) {
 
-                /* If no agent is present at (x,y) just print a dot. */
+                    /* If no agent is present at (x,y) just print a dot. */
                 case None:
                     printf(" .  ");
                     break;
 
-                /* If human agent present at (x,y) print 'h' or 'H'. */
+                    /* If human agent present at (x,y) print 'h' or 'H'. */
                 case Human:
                     if (playable) {
                         /* Uppercase 'H' for player-controlled human agent. */
@@ -119,21 +122,21 @@ void showworld_update(SHOWWORLD *sw, void *w) {
                     printf("%02X ", ag_id);
                     break;
 
-                /* If zombie agent present at (x,y) print 'z' or 'Z'. */
+                    /* If zombie agent present at (x,y) print 'z' or 'Z'. */
                 case Zombie:
                     if (playable) {
                         /* Uppercase 'Z' for player-controlled zombie agent. */
-                        printf("Z");
+                        printf(ANSI_COLOR_RED "Z" ANSI_COLOR_RESET);
                     } else {
                         /* Lowercase 'z' for AI-controlled zombie agent. */
-                        printf("z");
+                        printf(ANSI_COLOR_RED "z" ANSI_COLOR_RESET);
                     }
                     /* Print the agent ID in front of the 'h'/'H'. */
-                    printf("%02X ", ag_id);
+                    printf(ANSI_COLOR_RED "%02X " ANSI_COLOR_RESET, ag_id);
                     break;
 
-                /* Print '?' if unknown type detected. This should *never*
-                   happen. */
+                    /* Print '?' if unknown type detected. This should *never*
+                       happen. */
                 default:
                     printf("?   ");
 
