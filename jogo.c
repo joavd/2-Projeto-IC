@@ -1,5 +1,5 @@
-/*
- * This file is part of "2º Projeto de Introdução à Computação 2017/2018"
+/*+++
+ * This file is part of "2Âº Projeto de IntroduÃ§Ã£o Ã  ComputaÃ§Ã£o 2017/2018"
  * (2oPIC1718).
  *
  * 2oPIC1718 is free software: you can redistribute it and/or modify
@@ -18,203 +18,305 @@
 
 /**
  * @file
- * This file is an example of: a) how to use the API defined in the
- * showworld.h header (mandatory for the project); and, b) how to use the
- * concrete simple implementation of the API (provided by the
- * showworld_simple.c file).
+ * This file is an application of the API defined in the
+ * showworld.h header that is mandatory for the project; and is our view in how
+ * the game should be like
  *
  * @author Nuno Fachada
+ * @Co-Authors Ines Goncalves, Ines Nunes, Joao Duarte
  * @date 2018
- * @copyright [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl.html)
+ * @copyright [GNU General Public License version 3 (GPLv3)]
+ * (http://www.gnu.org/licenses/gpl.html)
  * */
 
-#include "showworld.h"
-#include "agent.h"
-#include "world.h"
+/** Standard libraries used by C programming */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+/** The graphic library chosen by us */
+#include "raylib.h"
+/** Library we got to read the files */
+#include "ini.h"
+/** Library provived by the teacher */
+#include "showworld.h"
+/** Our own libraries */
+#include "agent.h"
+#include "world.h"
 
-/** Horizontal world size. */
-#define WORLD_X 20
-
-/** Vertical world size. */
-#define WORLD_Y 20
-#define HUMANS 20
-#define ZOMBIES 20
-#define PZ 1
-#define PH 1
-#define MAX_TURN 1000
-
+/** Agent's structure that will receive all information needed for the game
+* so it aids the research and data management  */
 struct agentID {
-    int x[40];
-    int y[40];
-    unsigned int id[40];
-    AGENT_TYPE type[40];
-    unsigned int ply[40];
+    int x;
+    int y;
+    unsigned int id;
+    AGENT_TYPE type;
+    unsigned int ply;
 };
 
+/** Structure that easily saves the configuration read by the ini files */
+typedef struct {
+    int xdim;
+    int ydim;
+    int nzombies;
+    int nhumans;
+    int nzplayers;
+    int nhplayers;
+    int maxturns;
+} configuration;
+
+/** Function that will check if the agent surpasses the map's limits, changing
+* to its correct place if it does */
 void toroidal(int *x, int *y, int *toro, int *na);
 
-void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein, int *movedir);
+/** Function that receives the calculated moves of the specific agent and
+* follows the previous function to properly place it */
+void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
+	int *movedir);
 
-void distancia(int *x, int *y, int xNovo, int yNovo, int typeA, AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int * apagar, struct agentID *agi);
+/** Receives the information about the agent, calculates it with
+* the closest agent and will decide if it'll move away or closer to
+* said agent, also checking for collision, infecting it */
+void distancia(int *x, int *y, int xNovo, int yNovo, int typeA,
+        AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
+        struct agentID *agents, int nagents);
 
+/** This function is an implementation of the definition provided by the
+ * ::get_agent_info_at() function pointer. It only works for AGENT and WORLD
+ * example structures defined in this file. */
 unsigned int example_get_ag_info(void *w, unsigned int x, unsigned int y);
 
+/** Function that was received by ini.h that will read from the ini and will
+* transform the information into variables */
+static int handler(void* user, const char* section, const char* name,
+        const char* value);
+
+/** to remove */
 int na1;
 
 
-/* This function is an implementation of the definition provided by the
- * ::get_agent_info_at() function pointer. It only works for AGENT and WORLD
- * example structures defined in this file. */
-unsigned int example_get_ag_info(void *world, unsigned int x, unsigned int y);
 
-/**
- * This `main` function is only an example of: a) how to use the API defined in
- * the showworld.h header (mandatory for the project); and, b) how to use the
- * concrete simple implementation of the API (provided in the
- * showworld_simple.c file).
- *
- * @return Always zero.
- * */
-int main() {
+
+/** This main function is our way to use the API defined in showworld.h,
+* mandatory to this project 
+* @return Always zero */
+
+
+int main(int argc, char **argv) {
+	/** Initialized WORLD *w and starts it at NULL */
     WORLD *w = NULL;
 
-    SHOWWORLD *sw = showworld_new(WORLD_X, WORLD_Y, example_get_ag_info);
+    /** Initializes a variable structure that will save the data read by the
+    * files in the configuration's structure */
+    configuration config;
 
-    w = world_new(WORLD_X, WORLD_Y);
+    /** Calls the function handler, saves the data needed in config, and if it's
+    * below 0, it didn't read anything, and the prinft message will appear */
+    if (ini_parse("config.ini", handler, &config) < 0) {
+        printf("Nao foi possivel encontrar o ficheiro 'config.ini'\n");
+        return 1;
+    }
+    /** Creates the total number of agents, adding the humans and zombies
+    * together */
+    int nagents = config.nhumans + config.nzombies;
+    
+    /** Creates an array of structures to save the different agents */
+    struct agentID agents[nagents];
+    
+    /** Initializes all the structures of arrays at 0 */
+    for (int i = 0; i < nagents; i++) {
+        agents[i].x = 0; 
+        agents[i].y = 0; 
+        agents[i].id = 0; 
+        agents[i].type = 0; 
+        agents[i].ply = 0; 
+    }
 
-    /** Funcao para fazer numeros aleatorios que nao correm predeterminadamente. */
+    /** Initializes the world that will be shown with the dimensions read and
+    * the fuction that can interpret the world */
+    SHOWWORLD *sw = showworld_new(config.xdim, config.ydim,
+    	example_get_ag_info);
+
+    /** Creates the world with the configurations read */
+    w = world_new(config.xdim, config.ydim);
+
+    /** Function to generate random numbers */
     srand(time(NULL));
+    
+    /** It'll run over the number between 0 and the number of agents, to
+    * guarantee all are created */
+    for (int i = 0; i < nagents; i++) {
+        int x, y;
+        AGENT_TYPE at;
 
-    struct agentID *agi;
-    agi = calloc(1, sizeof (struct agentID));
+        /** We give x and y a random number, to place them in the grid */
+        x = (rand() % config.xdim);
+        y = (rand() % config.ydim);
 
-    int nagents = HUMANS + ZOMBIES;
-
-    /*
-        for (int i = 0; i < HUMANS; i++) {
-            int x = rand() % WORLD_X;
-            int y = rand() % WORLD_Y;
-
-
-            if (world_get(w, x, y) == NULL) {
-                AGENT *a = agent_new(Human, i, i < PH);
-                world_put(w, x, y, (ITEM *) a);
-            } else {
-                i--;
+        /** In this case we avoid "saving" on top, otherwise we'll lose the
+        * reference to * agents created and then we cannot lose said memory */
+        if (world_get(w, x, y) == NULL) {
+            if (i >= 0 && i < config.nhumans) {
+                at = Human;
+            } else if (i >= config.nhumans && i < nagents) {
+                at = Zombie;
             }
 
-        }
-        for (int i = 0; i < ZOMBIES; i++) {
-            int x = rand() % WORLD_X;
-            int y = rand() % WORLD_Y;
-
-
-            if (world_get(w, x, y) == NULL) {
-                AGENT *a = agent_new(Zombie, i, i < PZ);
-                world_put(w, x, y, (ITEM *) a);
-            } else {
-                i--;
-            }
-
-        }
-     */
-
-    for (int turn = 0; turn < MAX_TURN; turn++) {
-        if (turn == 0) {
-            for (int i = 0; i < nagents; i++) {
-
-                int x, y;
-
-
-                /*
-                loop:
-                 */
-                /**Damos um valor aleatorio a x e y para metelos na grelha*/
-                x = (rand() % WORLD_X);
-                y = (rand() % WORLD_Y);
-
-                /* Neste caso evitamos "gravar" por cima, senão perdemos a referência a
-                 * agentes criados e depois não podemos libertar a respetiva memória. */
-                if (world_get(w, x, y) == NULL) {
-                    AGENT_TYPE at = (rand() % 2 == 0) ? Human : Zombie;
-                    unsigned int playable = (rand() % 10 == 0);
-                    AGENT *a = agent_new(at, i, playable);
-                    world_put(w, x, y, (ITEM *) a);
-                    agi->id[i] = i;
-                    agi->x[i] = x;
-                    agi->y[i] = y;
-                    agi->type[i] = at;
-                    agi->ply[i] = playable;
-                    printf("id = %d ", agi->id[i]);
-                    //printf(" ola %d %d %d %d\n", agi->x[i], agi->y[i], agi->id[i], agi->ply[i]);
-                } else {
-                    i--;
-                }
-
-
-                if (i == nagents - 1) {
-                    showworld_update(sw, w);
-                }
-
-                printf("\n");
-
-            }
+            /** It'll create the agent using the information previously
+            * given, it'll place it on the grid using the generated data, and
+            * it'll save it on the agent's array at the same time */
+            unsigned int playable = (rand() % 10 == 0);
+            AGENT *a = agent_new(at, i, playable);
+            world_put(w, x, y, (ITEM *) a);
+            agents[i].id = i;
+            agents[i].x = x;
+            agents[i].y = y;
+            agents[i].type = at;
+            agents[i].ply = playable;
         } else {
+        	/** If there's already an agent in a certain place, it will create
+        	* another one, so that there's an equal amount of agents asked to
+        	* generate */
+            i--;
+        }
+    }
+    /** It'll update the world, which was was previously saved by a structure, 
+    * and when received by the function, it'll transform it into a 
+    * graphic library */
+    showworld_update(sw, w);
+    printf("Carregue no ENTER para mudar de turno");
+    getchar();
+    printf("\n");
 
-            //dá shuffle
-            for (int i1 = 39; i1 > 0; i1--) {
-                int index = rand() % i1;
-                //troca
-                int temp1 = agi->x[index];
-                agi->x[index] = agi->x[i1];
-                agi->x[i1] = temp1;
+    /** This function will be responsible to manage the turns in an efficient
+    * and correct way */
+    for (int turn = 0; turn < config.maxturns; turn++) {
 
-                int temp2 = agi->y[index];
-                agi->y[index] = agi->y[i1];
-                agi->y[i1] = temp2;
+    	/** Modern adaptation of the Fisher-Yater algorithm
+    	* It'll start at the end of the array, and it'll shuffle its position
+    	* with another one, decrementing them, and it will repeat until all of
+    	* them are shuffled */
+        for (int i1 = nagents - 1; i1 > 0; i1--) {
+            int index = rand() % i1;
+      
+            int temp = agents[index];
+            agents[index] = agents[i1];
+            agents[i1] = temp;
+        }
 
-                int temp3 = agi->id[index];
-                agi->id[index] = agi->id[i1];
-                agi->id[i1] = temp3;
+        /** Declaration of the needed values to 0 */
+        int move = 0;
+        int xPrincipal = 0;
+        int yPrincipal = 0;
+        int xNovo = 0;
+        int yNovo = 0;
+        int aNovo = 0;
 
-                AGENT_TYPE temp4 = agi->type[index];
-                agi->type[index] = agi->type[i1];
-                agi->type[i1] = temp4;
+        /** na will run over all the agents, in the same order they were
+        * shuffled in */
+        for (int na = 0; na < nagents - 1; na++) {
+        	/** Variable that will save the current position of the agent */
+            xPrincipal = agents[na].x;
+            yPrincipal = agents[na].y;
+            /** Variable that'll search for the closest agent */
+            xNovo = agents[na].x;
+            yNovo = agents[na].y;
+            /** Variable that'll save the type of agent */
+            int typeA = 0;
+            /**Boolean variable that will save if the toroidal was used
+            * or not */
+            int toro = 0;
+            /** Boolean variable that will save if the agent moved or not */
+            int apagar = 0;
+            /** Direction in which the agent will move to */
+            move = 3;
+            /** Variable that'll save the player's input */
+            int seta;
+            /** Variable that moves the player when its playable */
+            int xMexe = 0;
+            int yMexe = 0;
 
-                int temp5 = agi->ply[index];
-                agi->ply[index] = agi->ply[i1];
-                agi->ply[i1] = temp5;
-            }
+            /** This will check if the agent in the current turn is playable */
+            if (agents[na].ply == 1) {
 
-            //Imprime o shuffle
-            printf("Shuffle: ");
-            for (int i2 = 0; i2 < 40 - 1; i2++) {
-                printf("id = %d ", agi->id[i2]);
-            }
-            printf("\n\n");
+            	/** Waits for an input that corresponds to one of the numbers
+            	* previously defined */
+                while (seta != 1 || seta != 2 || seta != 3 || seta != 4 || 
+                	seta != 6 || seta != 7 || seta != 8 || seta != 9) {
+
+                	/** It'll print the instructions for the input */
+                    printf("Use as setas para se mexer\n");
+                    scanf("%d", &seta);
+                    /** It'll save in xMexe and yMexe the value of the original
+                    * x and y */
+                    xMexe = agents[na].x;
+                    yMexe = agents[na].y;
+                    switch (seta) {
+                        case 1:
+                            xMexe--;
+                            yMexe++;
+
+                            break;
+                        case 2:
+                            yMexe++;
+                            break;
+                        case 3:
+                            xMexe++;
+                            yMexe++;
+                            break;
+                        case 4:
+                            xMexe--;
+                            break;
+                        case 6:
+                            xMexe++;
+                            break;
+                        case 7:
+                            xMexe--;
+                            yMexe--;
+                            break;
+                        case 8:
+                            yMexe--;
+                            break;
+                        case 9:
+                            xMexe++;
+                            yMexe--;
+                            break;
+                    }
+                    toroidal(&xMexe, &yMexe, &toro, &na);
+
+                    if (world_get(w, xMexe, yMexe) == NULL) {
+                        agents[na].x = xMexe;
+                        agents[na].y = yMexe;
+                        apagar = 1;
+
+                    } else {
+                        for (aNovo = 0; aNovo < nagents; aNovo++) {
+                            if (xMexe == agents[aNovo].x &&
+                            	yMexe == agents[aNovo].y && agents[na].type !=
+                            	agents[aNovo].type) {
+                                if (agents[aNovo].type == Human &&
+                                	agents[na].type == 2) {
+                                    agents[aNovo].type = 2;
+                                    AGENT *a2 = world_get(w, agents[aNovo].x,
+                                    	agents[aNovo].y);
+                                    mudar_agent_type(agents[aNovo].type,
+                                    	(AGENT *) a2);
+                                    world_put(w, agents[aNovo].x,
+                                    	agents[aNovo].y, (ITEM *) a2);
+                                    free(a2);
+
+                                }
+                            }
+
+                        }
+
+                    }
 
 
-            int move;
-            int xPrincipal = 0;
-            int yPrincipal = 0;
-            int xNovo = 0;
-            int yNovo = 0;
-            int aNovo = 0;
-            int na;
-            for (na = 0; na < nagents - 1; na++) {
-                xPrincipal = agi->x[na];
-                yPrincipal = agi->y[na];
-                xNovo = agi->x[na];
-                yNovo = agi->y[na];
-                int typeA = 0;
-                int toro = 0;
-                int apagar = 0;
-                move = 3;
 
+                    goto movela;
 
+                }
+            } else {
 
                 /* TEST ---- TODO */
                 for (int i = 1; i <= 10; i++) {
@@ -243,86 +345,82 @@ int main() {
                             toroidal(&xNovo, &yNovo, &toro, &na);
 
                             if (w->grid[yNovo * w->xdim + xNovo] != NULL) {
-                                for (aNovo = 0; aNovo < nagents - 1; aNovo++) {
-                                    if (xNovo == agi->x[aNovo] && yNovo == agi->y[aNovo] && agi->type[na] != agi->type[aNovo]) {
-                                        if (agi->type[na] == Zombie) {
+                                for (aNovo = 0; aNovo < nagents; aNovo++) {
+                                    if (xNovo == agents[aNovo].x && yNovo == 
+                                    	agents[aNovo].y && agents[na].type 
+                                    	!= agents[aNovo].type) {
+                                        if (agents[na].type == Zombie) {
                                             typeA = 1;
                                         }
 
                                         goto movela;
 
-
                                     }
 
                                 }
-
                             }
-                            /*
-                                                                    world_update(w);
-                                                                    printf("Pressione ENTER para o seguinte turno...");
-                                                                    getchar();
-                             */
                         }
                     }
                 }
+            }
 
 movela:
-                printf("Envontreeeeeeeeiiiiiiiii %d %d %d %d\n", agi->x[na], agi->y[na], agi->x[aNovo], agi->y[aNovo]);
+            printf("aaaaaaaaaaaaaaaaaa %d %d\n", agents[na].x, agents[na].y);
 
 
-                distancia(&agi->x[na], &agi->y[na], agi->x[aNovo], agi->y[aNovo], typeA, &agi->type[na], toro, w, na, &apagar, agi);
+            if (agents[na].ply == 0) {
+                distancia(&agents[na].x, &agents[na].y, agents[aNovo].x, 
+                	agents[aNovo].y, typeA, &agents[na].type, toro, w, na, 
+                	&apagar, agents, nagents);
+            }
 
-                printf("Envontreeeeeeeeiiiiiiiii %d %d %d %d %d\n", agi->x[na], agi->y[na], agi->x[aNovo], agi->y[aNovo], toro);
+            AGENT *a1 = agent_new(agents[na].type, agents[na].ply, 
+            	agents[na].id);
 
-
-                AGENT *a1 = agent_new(agi->type[na], agi->ply[na], agi->id[na]);
-/*
-                AGENT *a1 = world_get(w, agi->x[xPrincipal], agi->y[yPrincipal]);
-*/
-                if (apagar == 1) {
-                    world_apagar(w, xPrincipal, yPrincipal);
-                }
-
-                /*
-                                mudar_agent_type(agi->type[aNovo], agi->id[aNovo], (AGENT *) a2);
-                                world_put(w, agi->x[aNovo], agi->y[aNovo], (ITEM *) a2);
-                 * 
-                 *             AGENT aNull = {None, 0, 0, xPrincipal, yPrincipal};
-
-            AGENT a1 = agent_grid[xPrincipal][yPrincipal];
             if (apagar == 1) {
-
-                agent_grid[xPrincipal][yPrincipal] = aNull;
+                world_apagar(w, xPrincipal, yPrincipal);
             }
+            world_put(w, agents[na].x, agents[na].y, (ITEM *) a1);
+            printf("Pressione ENTER para o seguinte turno...");
 
-            agent_grid[agi->x[na]][agi->y[na]] = a1;
-            printf("agente toca colhoinsssssssssssssssssssss%d %d\n", agi->x[na], agi->y[na]);
+            getchar();
 
-            wrld.grid = (AGENT *) agent_grid;
-                 */
-/*
-                mudar_agent_type(agi->type[aNovo], agi->id[aNovo], (AGENT *) a1);
-*/
-
-                world_put(w, agi->x[na], agi->y[na], (ITEM *) a1);
-
-                showworld_update(sw, w);
-
-
-                printf("Pressione ENTER para o seguinte turno...");
-                getchar();
-
-
-            }
+            showworld_update(sw, w);
 
         }
-
     }
-    showworld_update(sw, w);
-    free(agi);
+
+
+    //showworld_update(sw, w);
+
     showworld_destroy(sw);
     world_destroy_full(w, (void (*)(ITEM *))agent_destroy);
     return 0;
+}
+
+static int handler(void* user, const char* section, const char* name,
+        const char* value) {
+    configuration* pconfig = (configuration*) user;
+
+#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    if (MATCH("dim", "xdim")) {
+        pconfig->xdim = atoi(value);
+    } else if (MATCH("dim", "ydim")) {
+        pconfig->ydim = atoi(value);
+    } else if (MATCH("nInit", "nzombies")) {
+        pconfig->nzombies = atoi(value);
+    } else if (MATCH("nInit", "nhumans")) {
+        pconfig->nhumans = atoi(value);
+    } else if (MATCH("nControl", "nzplayers")) {
+        pconfig->nzplayers = atoi(value);
+    } else if (MATCH("nControl", "nhplayers")) {
+        pconfig->nhplayers = atoi(value);
+    } else if (MATCH("turns", "maxturns")) {
+        pconfig->maxturns = atoi(value);
+    } else {
+        return 0; /* unknown section/name, error */
+    }
+    return 1;
 }
 
 /**
@@ -460,7 +558,8 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein, int *movedi
     } else if ((yN - yNovo > 10) || (yN - yNovo < -10)) {
         *movein = 1;
         dir = 1;
-    } else if (((xN - xNovo > 10) || (xN - xNovo < -10)) && ((yN - yNovo > 10) || (yN - yNovo < -10))) {
+    } else if (((xN - xNovo > 10) || (xN - xNovo < -10)) && ((yN - yNovo > 10) 
+    	|| (yN - yNovo < -10))) {
         *movein = 1;
         dir = 2;
     }
@@ -468,7 +567,9 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein, int *movedi
     *movedir = dir;
 }
 
-void distancia(int *x, int *y, int xNovo, int yNovo, int typeA, AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar, struct agentID *agi) {
+void distancia(int *x, int *y, int xNovo, int yNovo, int typeA,
+        AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
+        struct agentID *agents, int nagents) {
     int xN = *x;
     int yN = *y;
     int movein = 1;
@@ -675,12 +776,8 @@ void distancia(int *x, int *y, int xNovo, int yNovo, int typeA, AGENT_TYPE *agTy
     }
 
     toroidal(&xN, &yN, &toro, &na);
-    printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa %d %d\n", xN, yN);
-
 
     if (world_get(w, xN, yN) == NULL) {
-
-        printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa %d %d\n", xN, yN);
 
         *x = xN;
         *y = yN;
@@ -688,26 +785,19 @@ void distancia(int *x, int *y, int xNovo, int yNovo, int typeA, AGENT_TYPE *agTy
 
     } else {
 
-        int nagents = 40;
         int aNovo;
         for (aNovo = 0; aNovo < nagents; aNovo++) {
 
-            if (xN == agi->x[aNovo] && yN == agi->y[aNovo] && agTypeAnt != agi->type[aNovo]) {
-                if (agi->type[aNovo] == Human && *agTypeAnt == 2) {
-                    agi->type[aNovo] = 2;
-                    AGENT *a2 = world_get(w, agi->x[aNovo], agi->y[aNovo]);
-                    mudar_agent_type(agi->type[aNovo], agi->id[aNovo], (AGENT *) a2);
-                    world_put(w, agi->x[aNovo], agi->y[aNovo], (ITEM *) a2);
-
-
+            if (xN == agents[aNovo].x && yN == agents[aNovo].y && agTypeAnt 
+            	!= agents[aNovo].type) {
+                if (agents[aNovo].type == Human && *agTypeAnt == 2) {
+                    agents[aNovo].type = 2;
+                    AGENT *a2 = world_get(w, agents[aNovo].x, agents[aNovo].y);
+                    mudar_agent_type(agents[aNovo].type, (AGENT *) a2);
+                    world_put(w, agents[aNovo].x, agents[aNovo].y, (ITEM *) a2);
+                    free(a2);
                 }
-
             }
-
         }
-
     }
-
 }
-
-

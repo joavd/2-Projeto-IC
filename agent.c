@@ -10,7 +10,7 @@ AGENT *agent_new(AGENT_TYPE type, unsigned short id, unsigned char playable) {
     return agent;
 }
 
-void mudar_agent_type(AGENT_TYPE type, unsigned short id, AGENT *agent) {
+void mudar_agent_type(AGENT_TYPE type, AGENT *agent) {
     agent->type = type;
     return agent;
 }

@@ -15,7 +15,7 @@ typedef struct {
     unsigned short id; /**< Agent ID.          */
 } AGENT;
 
-void mudar_agent_type(AGENT_TYPE type, unsigned short id, AGENT *agent);
+void mudar_agent_type(AGENT_TYPE type, AGENT *agent);
 AGENT * agent_new(AGENT_TYPE type, unsigned short id, unsigned char playable);
 void agent_destroy(AGENT * agent);
 

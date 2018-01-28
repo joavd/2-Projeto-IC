@@ -28,13 +28,14 @@
  * @date 2018
  * @copyright [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl.html)
  * */
+#include "raylib.h"
 
 #include "showworld.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ANSI_COLOR_RED "\x1b[31m"
-#define ANSI_COLOR_RESET "\x1b[0m"
+#define screenWidth 1500
+#define screenHeight 800
 
 /* The implementation of `SHOWWORLD` type used in this simple text-based world
  * visualization code. In this simple case, we only need to keep track of the
@@ -59,12 +60,16 @@ SHOWWORLD *showworld_new(
         unsigned int ydim,
         get_agent_info_at aginfo_func) {
 
+
+    InitWindow(screenWidth, screenHeight, "Proyecto Zombie faca");
+
     SHOWWORLD *sw = NULL;
     sw = malloc(sizeof (SHOWWORLD));
     sw->xdim = xdim;
     sw->ydim = ydim;
     sw->aginfo_func = aginfo_func;
     return sw;
+
 
 }
 
@@ -74,6 +79,7 @@ SHOWWORLD *showworld_new(
  * `showworld.h`. */
 void showworld_destroy(SHOWWORLD *sw) {
     free(sw);
+    CloseWindow();
 }
 
 /* Update the simulation world display/visualization.
@@ -81,6 +87,11 @@ void showworld_destroy(SHOWWORLD *sw) {
  * This function obeys the `showworld_update()` prototype defined in
  * `showworld.h`. */
 void showworld_update(SHOWWORLD *sw, void *w) {
+    Texture2D galifaca = LoadTexture("faca1.png"); // Texture loading
+    Texture2D hum = LoadTexture("gajo.png"); // Texture loading
+
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
 
     printf("\n");
 
@@ -106,49 +117,65 @@ void showworld_update(SHOWWORLD *sw, void *w) {
 
                     /* If no agent is present at (x,y) just print a dot. */
                 case None:
-                    printf(" .  ");
+                    DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, BLACK);
                     break;
 
                     /* If human agent present at (x,y) print 'h' or 'H'. */
                 case Human:
                     if (playable) {
                         /* Uppercase 'H' for player-controlled human agent. */
-                        printf("H");
+                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, YELLOW);
+                        /*
+                                                DrawTexture(hum, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                         */
                     } else {
                         /* Lowercase 'h' for AI-controlled human agent. */
-                        printf("h");
+                        //DrawRectangle(x * 40, y * 40, 25, 25, SKYBLUE);
+                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, GOLD);
+                        /*
+                                                DrawTexture(hum, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                         */
                     }
                     /* Print the agent ID in front of the 'h'/'H'. */
-                    printf("%02X ", ag_id);
+                    // printf("%02X ", ag_id);
+                    // Draw a color-filled rectangle
+                    // DrawText("", 190, 200, 20, LIGHTGRAY);
+                    DrawText(FormatText("%02d", ag_id), x * (GetScreenWidth() / sw->xdim) + 15, y * (GetScreenHeight() / sw->ydim) + 10, 17 , GOLD);
                     break;
 
                     /* If zombie agent present at (x,y) print 'z' or 'Z'. */
                 case Zombie:
                     if (playable) {
                         /* Uppercase 'Z' for player-controlled zombie agent. */
-                        printf(ANSI_COLOR_RED "Z" ANSI_COLOR_RESET);
+                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, LIME);
+
+                        /*
+                                                DrawTexture(galifaca, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, BLACK);
+                         */
                     } else {
                         /* Lowercase 'z' for AI-controlled zombie agent. */
-                        printf(ANSI_COLOR_RED "z" ANSI_COLOR_RESET);
+                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, DARKGREEN);
+
+                        /*
+                                                DrawTexture(galifaca, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                         */
+
                     }
                     /* Print the agent ID in front of the 'h'/'H'. */
-                    printf(ANSI_COLOR_RED "%02X " ANSI_COLOR_RESET, ag_id);
+                    DrawText(FormatText("%02d", ag_id), x * (GetScreenWidth() / sw->xdim) + 15, y * (GetScreenHeight() / sw->ydim) + 10, 17, GREEN);
                     break;
 
                     /* Print '?' if unknown type detected. This should *never*
                        happen. */
                 default:
-                    printf("?   ");
+                    DrawRectangle(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, MAGENTA);
 
             }
         }
 
-        /* Print two newlines after each row. */
-        printf("\n\n");
 
     }
-
-    /* Print a newline after world is shown/updated. */
-    printf("\n");
+    EndDrawing();
 
 }
+
