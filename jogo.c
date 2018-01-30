@@ -343,7 +343,7 @@ int main(int argc, char **argv) {
 
                 /** Starting at 1, it'll search around the original agent,
                 * incrementing the radius by 1 until it finds it */
-                for (int i = 1; i <= 10; i++) {
+                for (int i = 1; i <= ((config.xdim + config.ydim)/4); i++) {
                     /** It'll always move 2 steps, following i's size, around
                     * the agent, using the switch (move)
                     * We chose this method because it would be more practical,
@@ -599,55 +599,83 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
         }
         na1 = *na;
     }
-    /**  */
-    if (ay < 0 && ay > (config.ydim - 1) && ax < 0 && ax >(config.xdim - 1)) {
+    /** If the agent is inside of the grid, the toroidal will not
+    * be applied and the boolean variables will reset */
+    if (ay < 0 && ay > (config.ydim - 1) && ax < 0 && ax > (config.xdim - 1)) {
         *(toro) = 0;
         na1 -= 1;
     }
 
+    /** It will change the initial values of the main function according with
+    * the calculations */
     *x = ax;
     *y = ay;
 }
 
+/** Function that receives the calculated moves of the specific agent and
+* follows the previous function to properly place it */
 void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
     int *movedir, configuration config) {
 
+    /** Creates a variable so it can perform changes without changing the
+    * value */
     int dir = *movedir;
 
-    if ((xN - xNovo > (config.xdim/2)) || (xN - xNovo < -(config.xdim/2))) {
+    /** Verifies if the player's current position is more or less than agent
+    * found. Depending on the result we got, it'll move on the toroidal in
+    * the correct way */
+    if ((xN - xNovo > (config.xdim/2)) || (xN - xNovo < (-config.xdim/2))) {
         *movein = 1;
         dir = 0;
-    } else if ((yN - yNovo > (config.ydim/2)) || (yN - yNovo < -(config.ydim/2))) {
+    } else if ((yN - yNovo > (config.ydim/2)) || (yN - yNovo <
+        (-config.ydim/2))) {
         *movein = 1;
         dir = 1;
-    } else if (((xN - xNovo > (config.xdim/2)) || (xN - xNovo < -(config.xdim/2)))
-     && ((yN - yNovo > (config.ydim/2)) || (yN - yNovo < -(config.ydim/2)))) {
+    } else if (((xN - xNovo > (config.xdim/2)) || (xN - xNovo <
+        (-config.xdim/2)))
+     && ((yN - yNovo > (config.ydim/2)) || (yN - yNovo < (-config.ydim/2)))) {
         *movein = 1;
         dir = 2;
     }
 
+    /** Saves the result in the original variable */
     *movedir = dir;
 }
 
+/** Function of the artificial intelligence that calculates the place the agent
+* will move to and if there's any obstacle in the way */
 void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
         AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
         struct agentID *agents, int nagents, configuration config) {
+    /** Saves the value of the position of the new agent  */
     int xN = *x;
     int yN = *y;
+    /** Variables that save the direction and place in which the agent will
+    * move to */
     int movein = 1;
     int movedir = 4;
 
-    // 0 = x; 1 = y; 2 = x && y;
 
+    /** Calls the function MoveToroidal to calculate the best place to where the
+    * agent should move to */
     MoveToroidal(xN, yN, xNovo, yNovo, &movein, &na, config);
 
 
+    /** Variable that will attack or run from either the zombie or human
+    * according to the previously calculated option */
     if (movedir == 4) {
         movein = -1;
     }
 
+    // 0 = x; 1 = y; 2 = x && y;
+
+    /** Switch that moves the direction of the agent depending on the place
+    * it'll pass on the toroidal */
     switch (movedir) {
+        /** If the value is 0, the agent will move according to its x position
+        * in the toroidal */
         case 0:
+            /** If the agent is a zombie */
             if (typeA == 1) {
                 if (xN > xNovo && yN > yNovo) {
                     xN += movein;
@@ -670,6 +698,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                 } else if (yN > yNovo && xN == xNovo) {
                     yN += movein;
                 }
+            /** If the agent is a human */
             } else {
                 if (xN > xNovo && yN > yNovo) {
                     xN -= movein;
@@ -694,7 +723,11 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                 }
             }
             break;
+        // 0 = x; 1 = y; 2 = x && y;
+        /** If the value is 1, the agent will move according to its y position
+        * in the toroidal */
         case 1:
+            /** If the agent is a zombie */
             if (typeA == 1) {
                 if (xN > xNovo && yN > yNovo) {
                     xN -= movein;
@@ -718,6 +751,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                     yN += movein;
                 }
             } else {
+                /** If the agent is a human */
                 if (xN > xNovo && yN > yNovo) {
                     xN += movein;
                     yN -= movein;
@@ -741,7 +775,10 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                 }
             }
             break;
+        /** If the value is 2, the agent will move according to its x + y
+        * position in the toroidal */
         case 2:
+            /** If the agent is a zombie */
             if (typeA == 1) {
                 if (xN > xNovo && yN > yNovo) {
                     xN += movein;
@@ -765,6 +802,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                     yN += movein;
                 }
             } else {
+                /** If the agent is a human */
                 if (xN > xNovo && yN > yNovo) {
                     xN -= movein;
                     yN -= movein;
@@ -788,7 +826,10 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                 }
             }
             break;
+        /** If the value is 4, the agent will move in case it's not inside the
+        * toroidal */
         case 4:
+            /** If the agent is a zombie */
             if (typeA == 1) {
                 if (xN > xNovo && yN > yNovo) {
                     xN += movein;
@@ -812,6 +853,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
                     yN += movein;
                 }
             } else {
+                /** If the agent is a human */
                 if (xN > xNovo && yN > yNovo) {
                     xN -= movein;
                     yN -= movein;
@@ -837,26 +879,44 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
             break;
     }
 
+    /** Calls the toroidal to check if x and y are outside of the toroidal */
     toroidal(&xN, &yN, &toro, &na, config);
 
+    /** If x new and y new have no agent in them, it'll send the boolean apagar
+    * so that the agent can move without any duplicated ones */
     if (world_get(w, xN, yN) == NULL) {
 
         *x = xN;
         *y = yN;
         *apagar = 1;
 
+    /** In case there's an agent in them, it'll detect if the agent is from the
+    * same type and if it's the same, it'll stay put, otherwise, if it's a
+    * zombie trying to move towards a human, it'll transform it into a zombie */
     } else {
 
+        /** Initializes the aNovo to run through all the available agents to
+        * check if there's any on that specific x and y */
         int aNovo;
         for (aNovo = 0; aNovo < nagents; aNovo++) {
 
+            /** In case agent is the same as x and y, and if the type of the new
+            * agent is different from the original x and y */
             if (xN == agents[aNovo].x && yN == agents[aNovo].y && agTypeAnt 
             	!= agents[aNovo].type) {
+                /** In case the type of the new agent is human and the original
+                * agent is a zombie, it'll transform it into a zombie */
                 if (agents[aNovo].type == Human && *agTypeAnt == 2) {
                     agents[aNovo].type = 2;
+                    /** It'll take the agent that's in the new position
+                    * (human)*/
                     AGENT *a2 = world_get(w, agents[aNovo].x, agents[aNovo].y);
+                    /** It'll call the function mudar_agent_type to the new
+                    * type */
                     mudar_agent_type(agents[aNovo].type, (AGENT *) a2);
+                    /** Places the new modified agent in the new x and y */
                     world_put(w, agents[aNovo].x, agents[aNovo].y, (ITEM *) a2);
+                    /** Releases the alocated memory */
                     free(a2);
                 }
             }
