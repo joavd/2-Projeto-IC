@@ -34,8 +34,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define screenWidth 600
-#define screenHeight 600
+#define screenWidth 700
+#define screenHeight 700
 
 /* The implementation of `SHOWWORLD` type used in this simple text-based world
  * visualization code. In this simple case, we only need to keep track of the

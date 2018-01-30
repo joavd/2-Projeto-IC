@@ -30,7 +30,7 @@ PROGRAM=jogo
 # is generated when "make" is executed. Because no explicit recipe is given,
 # the "make" program will use the implicit rule for linking all object files
 # into an executable program.
-$(PROGRAM): $(PROGRAM).o showworld_simple.o agent.o world.o ini.o
+$(PROGRAM): $(PROGRAM).o showworld_raylib.o agent.o world.o ini.o
 
 # Rule to generate program object. Again, because no explicit recipe is given,
 # "make" will use an implicit rule for properly compiling $(PROGRAM).o.
@@ -39,7 +39,7 @@ $(PROGRAM).o: $(PROGRAM).c showworld.h
 # Rule to generate showworld_simple.o object. Again, because no explicit recipe
 # is given, "make" will use an implicit rule for properly compiling
 # showworld_simple.o.
-showworld_simple.o: showworld_simple.c showworld.h
+showworld_raylib.o: showworld_raylib.c showworld.h
 
 agent.o: agent.c agent.h
 
