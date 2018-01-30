@@ -41,9 +41,9 @@ $(PROGRAM).o: $(PROGRAM).c showworld.h
 # showworld_simple.o.
 showworld_simple.o: showworld_simple.c showworld.h
 
-agent.o: agent.c agent.h
-
 world.o: world.c world.h
+
+agent.o: agent.c agent.h
 	
 ini.o: ini.c ini.h
 

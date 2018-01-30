@@ -551,7 +551,7 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
     int ay = *y;
 
     /** If ax(agent's x) is bigger than the grid, it'll go back to 0 */
-    if (ax > config.xdim - 1) {
+    if (ax > (config.xdim - 1)) {
         ax = 0;
         if (na1 != *na) {
             if (*(toro) == 0) {
@@ -565,7 +565,7 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
 
         /** If ax is lower than 0, it'll go back to config.xdim - 1 */
     } else if (ax < 0) {
-        ax = config.xdim - 1;
+        ax = (config.xdim - 1);
         if (na1 != *na) {
             if (*(toro) == 0) {
                 *(toro) = 1;
@@ -577,7 +577,7 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
     }
     /** If ax(agent's x) is bigger than the grid, it'll go back to 0 */
     if (ay < 0) {
-        ay = config.ydim - 1;
+        ay = (config.ydim - 1);
         if (na1 != *na) {
             if (*(toro) == 0) {
                 *(toro) = 1;
@@ -588,7 +588,7 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
         na1 = *na;
 
     /** If ax is lower than 0, it'll go back to config.ydim - 1 */
-    } else if (ay > config.ydim - 1) {
+    } else if (ay > (config.ydim - 1)) {
         ay = 0;
         if (na1 != *na) {
             if (*(toro) == 0) {
@@ -600,7 +600,7 @@ void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
         na1 = *na;
     }
     /**  */
-    if (ay < 0 && ay > config.ydim - 1 && ax < 0 && ax > config.xdim - 1) {
+    if (ay < 0 && ay > (config.ydim - 1) && ax < 0 && ax >(config.xdim - 1)) {
         *(toro) = 0;
         na1 -= 1;
     }
@@ -614,14 +614,14 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
 
     int dir = *movedir;
 
-    if ((xN - xNovo > config.xdim/2) || (xN - xNovo < -config.xdim/2)) {
+    if ((xN - xNovo > (config.xdim/2)) || (xN - xNovo < -(config.xdim/2))) {
         *movein = 1;
         dir = 0;
-    } else if ((yN - yNovo > config.ydim/2) || (yN - yNovo < -config.ydim/2)) {
+    } else if ((yN - yNovo > (config.ydim/2)) || (yN - yNovo < -(config.ydim/2))) {
         *movein = 1;
         dir = 1;
-    } else if (((xN - xNovo > config.xdim/2) || (xN - xNovo < -config.xdim/2))
-     && ((yN - yNovo > config.ydim/2) || (yN - yNovo < -config.ydim/2))) {
+    } else if (((xN - xNovo > (config.xdim/2)) || (xN - xNovo < -(config.xdim/2)))
+     && ((yN - yNovo > (config.ydim/2)) || (yN - yNovo < -(config.ydim/2)))) {
         *movein = 1;
         dir = 2;
     }
