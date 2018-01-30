@@ -24,7 +24,9 @@ Yada
 
 ### Data scructures
 
-Yada
+Our data scructures are organized by arrays of structs, which means that we have an array that saves all the information
+about the agents (type, id, x and y coordenates, etc.) and then passes the information needed to the world struct (x and
+y coordenates). All the information that is saved in the struct AGENT is the same as the one in the struct WORLD.
 
 ### Algorithms
 
@@ -61,5 +63,6 @@ Yada
 
 * <a name="ref1">\[1\]</a> Pereira, A. (2017). C e Algoritmos, 2ª edição. Sílabo.
 * <a name="ref2">\[2\]</a> "benhoyt" . [Simple .INI file parser in C](https://github.com/benhoyt/inih), GitHub.
-* <a name="ref3">\[3\]</a> Conversas formais com os colegas Alejandro, Frederico e André Cosme sobre o projeto inteiro.
-* <a name="ref4">\[4\]</a> Conversas formais com os colegas Leandro, Diana e Hugo sobre o projeto inteiro.
+* <a name="ref3">\[3\]</a> Formal conversations with the classmates Alejandro, Frederico and André Cosme about the all
+project.
+* <a name="ref4">\[4\]</a> Formal conversations with the classmates Leandro, Diana and Hugo about the all project.
