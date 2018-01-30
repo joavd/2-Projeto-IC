@@ -66,19 +66,19 @@ typedef struct {
 
 /** Function that will check if the agent surpasses the map's limits, changing
 * to its correct place if it does */
-void toroidal(int *x, int *y, int *toro, int *na);
+void toroidal(int *x, int *y, int *toro, int *na, configuration config);
 
 /** Function that receives the calculated moves of the specific agent and
 * follows the previous function to properly place it */
 void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
-	int *movedir);
+	int *movedir, configuration config);
 
 /** Receives the information about the agent, calculates it with
 * the closest agent and will decide if it'll move away or closer to
 * said agent, also checking for collision, infecting it */
 void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
         AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
-        struct agentID *agents, int nagents);
+        struct agentID *agents, int nagents, configuration config);
 
 /** This function is an implementation of the definition provided by the
  * ::get_agent_info_at() function pointer. It only works for AGENT and WORLD
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
         for (int i1 = nagents - 1; i1 > 0; i1--) {
             int index = rand() % i1;
       
-            int temp = agents[index];
+            struct agentID temp = agents[index];
             agents[index] = agents[i1];
             agents[i1] = temp;
         }
@@ -286,7 +286,7 @@ int main(int argc, char **argv) {
                     }
 
                     /** This will check if we move outside of the grid */
-                    toroidal(&xMexe, &yMexe, &toro, &na);
+                    toroidal(&xMexe, &yMexe, &toro, &na, config);
 
                     /** Verifies if the agent can move to its desired place,
                     * erasing its previous place, because we use a new agent,
@@ -376,7 +376,7 @@ int main(int argc, char **argv) {
                             }
                             /** By searching for the agent, it'll apply the
                             * toroidal to our searching function if necessary */
-                            toroidal(&xNovo, &yNovo, &toro, &na);
+                            toroidal(&xNovo, &yNovo, &toro, &na, config);
 
                             /** Check if it finds anything */
                             if (w->grid[yNovo * w->xdim + xNovo] != NULL) {
@@ -415,7 +415,7 @@ moveIt:
             if (agents[na].ply == 0) {
                 AI(&agents[na].x, &agents[na].y, agents[aNovo].x, 
                 	agents[aNovo].y, typeA, &agents[na].type, toro, w, na, 
-                	&apagar, agents, nagents);
+                	&apagar, agents, nagents, config);
             }
             /** It'll create a new agent with the na's type, playability,
             * and id */
@@ -546,7 +546,7 @@ unsigned int example_get_ag_info(void *w, unsigned int x, unsigned int y) {
 * x and y are the places it will want to pass
 * toro is too see if it surpasses the limit or not 
 * na is the agent's number */
-void toroidal(int *x, int *y, int *toro, int *na) {
+void toroidal(int *x, int *y, int *toro, int *na, configuration config) {
     int ax = *x;
     int ay = *y;
 
@@ -610,18 +610,18 @@ void toroidal(int *x, int *y, int *toro, int *na) {
 }
 
 void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
-    int *movedir) {
+    int *movedir, configuration config) {
 
     int dir = *movedir;
 
-    if ((xN - xNovo > 10) || (xN - xNovo < -10)) {
+    if ((xN - xNovo > config.xdim/2) || (xN - xNovo < -config.xdim/2)) {
         *movein = 1;
         dir = 0;
-    } else if ((yN - yNovo > 10) || (yN - yNovo < -10)) {
+    } else if ((yN - yNovo > config.ydim/2) || (yN - yNovo < -config.ydim/2)) {
         *movein = 1;
         dir = 1;
-    } else if (((xN - xNovo > 10) || (xN - xNovo < -10)) && ((yN - yNovo > 10) 
-    	|| (yN - yNovo < -10))) {
+    } else if (((xN - xNovo > config.xdim/2) || (xN - xNovo < -config.xdim/2))
+     && ((yN - yNovo > config.ydim/2) || (yN - yNovo < -config.ydim/2))) {
         *movein = 1;
         dir = 2;
     }
@@ -631,7 +631,7 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
 
 void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
         AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
-        struct agentID *agents, int nagents) {
+        struct agentID *agents, int nagents, configuration config) {
     int xN = *x;
     int yN = *y;
     int movein = 1;
@@ -639,7 +639,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
 
     // 0 = x; 1 = y; 2 = x && y;
 
-    MoveToroidal(xN, yN, xNovo, yNovo, &movein, &movedir);
+    MoveToroidal(xN, yN, xNovo, yNovo, &movein, &na, config);
 
 
     if (movedir == 4) {
@@ -837,7 +837,7 @@ void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
             break;
     }
 
-    toroidal(&xN, &yN, &toro, &na);
+    toroidal(&xN, &yN, &toro, &na, config);
 
     if (world_get(w, xN, yN) == NULL) {
 
