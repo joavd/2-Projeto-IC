@@ -1,4 +1,4 @@
-# 
+# Zombie_Ineses
 
 * Inês Gonçalves - a21702076
 
@@ -15,7 +15,8 @@ idea of what was done, we started creating the data structure to be able to comu
 were made to play with the agents' positions.
 After we had an idea of the behaviour of the "engine" we did the artificial inteligence of the agents.
 All the possible outcomes of the movement in the toroidal grid were calculated for a realistic movement, where it'll
-find the nearest agent regardless of the side of the grid. 
+find the nearest agent regardless of the side of the grid.
+After everything was done we fixed some bugs.
 
 ### Architecture
 
@@ -27,7 +28,22 @@ Yada
 
 ### Algorithms
 
-Yada
+Our algorithms are the following:
+
+* Search function : Searches the grid in counter-clockwise never passing through the same position twice, 
+making this an extremely efficient algorithm for finding a specific agent of the opposite type.
+
+* Move (AI)  function : Calculates the position to where it'll move into, by checking where both agents are on the map,
+and evaluating if the agent that moves will need to trangress the grid to the other side, and returning the 
+correspondent value to the agent.
+
+* Toroidal function : Checks if the x and y coordinates will transgress the grid and gives them a real value.
+
+* MoveToroidal function : Checks which side it will move when passing the toroidal grid.
+
+* Shuffle function : Shuffles the array of structures so that each turn there's a random agent moving.
+
+* Find agent function : Runs through the array of structures to find the wanted agent.
 
 ## User guide
 
