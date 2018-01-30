@@ -20,7 +20,7 @@ After everything was done we fixed some bugs.
 
 ### Architecture
 
-Yada
+[fluxograma()](fluxograma.svg "fluxograma()")
 
 ### Data scructures
 
@@ -57,7 +57,12 @@ the world. The game will run until it shows a playable agent and, in that case, 
 
 ## Conclusions
 
-Yada
+Our conclusion for this project is that we were not really prepared for what we were asked to do, with that we mean that
+yes, we may have learned all the necessary elements to be able to do the project, though it was really hard to work with
+what we were given, and found much easier to work with a code from scratch and with our line of thougt then from what 
+the teacher asked us to use, which made us start all over again at least 3 times.
+To be able to finish this project we had to work together with other groups(mencioned in the references), which probably
+shouldn't happen, but it was the only way we found in order to finish and even to start.
 
 ## References
 
