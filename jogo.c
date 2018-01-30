@@ -141,12 +141,17 @@ int main(int argc, char **argv) {
 
     /** Variable to aid the agent_number */
     int na1;
+
+    /** Variables to count how many playable agents are created*/
+    int zplay = 0;
+    int hplay = 0;
     
     /** It'll run over the number between 0 and the number of agents, to
     * guarantee all are created */
     for (int i = 0; i < nagents; i++) {
         int x, y;
         AGENT_TYPE at;
+        int playable = 0;
 
         /** We give x and y a random number, to place them in the grid */
         x = (rand() % config.xdim);
@@ -161,10 +166,21 @@ int main(int argc, char **argv) {
                 at = Zombie;
             }
 
+            /** If the agent type is Human and the playable agents weren't all
+             *  created it will create one */
+            if (at == Human && hplay < config.nhplayers) {
+                playable = 1;
+                hplay++;
+            }
+
+            if (at == Zombie && zplay < config.nzplayers) {
+                playable = 1;
+                zplay++;
+            }
+
             /** It'll create the agent using the information previously
             * given, it'll place it on the grid using the generated data, and
             * it'll save it on the agent's array at the same time */
-            unsigned int playable = (rand() % 10 == 0);
             AGENT *a = agent_new(at, i, playable);
             world_put(w, x, y, (ITEM *) a);
             agents[i].id = i;
@@ -183,13 +199,16 @@ int main(int argc, char **argv) {
     * and when received by the function, it'll transform it into a 
     * graphic library */
     showworld_update(sw, w);
-    printf("Carregue no ENTER para mudar de turno");
+    printf("Press ENTER to start the game");
     getchar();
-    printf("\n");
+    printf("\n\n");
 
     /** This function will be responsible to manage the turns in an efficient
     * and correct way */
     for (int turn = 0; turn < config.maxturns; turn++) {
+
+        /** Prints the current turn */
+        printf("Current Turn: %d\n", turn);
 
     	/** Modern adaptation of the Fisher-Yater algorithm
     	* It'll start at the end of the array, and it'll shuffle its position
@@ -235,6 +254,10 @@ int main(int argc, char **argv) {
             int xMexe = 0;
             int yMexe = 0;
 
+            /** Prints the current moving agent*/
+            printf("The current agent moving is: %x - at x: %d, y %d\n", 
+            agents[na].id, xPrincipal, yPrincipal);
+
             /** This will check if the agent in the current turn is playable */
             if (agents[na].ply == 1) {
 
@@ -245,7 +268,7 @@ int main(int argc, char **argv) {
                     seta != 9) {
 
                 	/** It'll print the instructions for the input */
-                    printf("Use as setas para se mexer\n");
+                    printf("Use the numpad to move\n");
                     scanf("%d", &seta);
                     /** It'll save in xMexe and yMexe the value of the original
                     * x and y of the agent */
@@ -429,10 +452,10 @@ moveIt:
             }
             /** This will place the new agent in the respective coordinates */
             world_put(w, agents[na].x, agents[na].y, (ITEM *) a1);
-            printf("Carregue no ENTER para ir para o turno seguinte");
 
             /** It'll wait for the player's input, otherwise you won't see
             * anything */
+            printf("Press ENTER for the next agent to move");
             getchar();
 
             /** It'll take w(world) and turn it into a sw(showworld), making it
