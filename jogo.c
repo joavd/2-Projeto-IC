@@ -1,5 +1,5 @@
 /*+++
- * This file is part of "2Âº Projeto de IntroduÃ§Ã£o Ã  ComputaÃ§Ã£o 2017/2018"
+ * This file is part of "2º Projeto de Introdução à Computação 2017/2018"
  * (2oPIC1718).
  *
  * 2oPIC1718 is free software: you can redistribute it and/or modify
@@ -25,8 +25,7 @@
  * @author Nuno Fachada
  * @Co-Authors Ines Goncalves, Ines Nunes, Joao Duarte
  * @date 2018
- * @copyright [GNU General Public License version 3 (GPLv3)]
- * (http://www.gnu.org/licenses/gpl.html)
+ * @copyright [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl.html)
  * */
 
 /** Standard libraries used by C programming */
@@ -255,7 +254,7 @@ int main(int argc, char **argv) {
             int yMexe = 0;
 
             /** Prints the current moving agent*/
-            printf("The current agent moving is: %x - at x: %d, y %d\n", 
+            printf("The current agent moving is: #%x - at x: %d, y: %d\n", 
             agents[na].id, xPrincipal, yPrincipal);
 
             /** This will check if the agent in the current turn is playable */
