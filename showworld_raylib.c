@@ -26,7 +26,8 @@
  *
  * @author Nuno Fachada
  * @date 2018
- * @copyright [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl.html)
+ * @copyright [GNU General Public License version 3 
+ * (GPLv3)](http://www.gnu.org/licenses/gpl.html)
  * */
 #include "raylib.h"
 
@@ -61,7 +62,7 @@ SHOWWORLD *showworld_new(
         get_agent_info_at aginfo_func) {
 
 
-    InitWindow(screenWidth, screenHeight, "Proyecto Zombie faca");
+    InitWindow(screenWidth, screenHeight, "Project Zombie_Ineses");
 
     SHOWWORLD *sw = NULL;
     sw = malloc(sizeof (SHOWWORLD));
@@ -117,58 +118,88 @@ void showworld_update(SHOWWORLD *sw, void *w) {
 
                     /* If no agent is present at (x,y) just print a dot. */
                 case None:
-                    DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, BLACK);
+                    DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, 
+                    y * (GetScreenHeight() / sw->ydim) + 5, 
+                    (GetScreenHeight() / sw->xdim), 
+                    (GetScreenHeight() / sw->ydim), BLACK);
                     break;
 
                     /* If human agent present at (x,y) print 'h' or 'H'. */
                 case Human:
                     if (playable) {
                         /* Uppercase 'H' for player-controlled human agent. */
-                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, YELLOW);
+                        DrawRectangleLines(
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, 25, 
+                            25, YELLOW);
                         /*
-                                                DrawTexture(hum, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                            DrawTexture(hum, 
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
                          */
                     } else {
                         /* Lowercase 'h' for AI-controlled human agent. */
                         //DrawRectangle(x * 40, y * 40, 25, 25, SKYBLUE);
-                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, GOLD);
+                        DrawRectangleLines(
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, 25, 
+                            25, GOLD);
                         /*
-                                                DrawTexture(hum, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                            DrawTexture(hum, 
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
                          */
                     }
                     /* Print the agent ID in front of the 'h'/'H'. */
                     // printf("%02X ", ag_id);
                     // Draw a color-filled rectangle
                     // DrawText("", 190, 200, 20, LIGHTGRAY);
-                    DrawText(FormatText("%02d", ag_id), x * (GetScreenWidth() / sw->xdim) + 15, y * (GetScreenHeight() / sw->ydim) + 10, 17 , GOLD);
+                    DrawText(FormatText("%02d", ag_id), 
+                    x * (GetScreenWidth() / sw->xdim) + 15, 
+                    y * (GetScreenHeight() / sw->ydim) + 10, 17 , GOLD);
                     break;
 
                     /* If zombie agent present at (x,y) print 'z' or 'Z'. */
                 case Zombie:
                     if (playable) {
                         /* Uppercase 'Z' for player-controlled zombie agent. */
-                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, LIME);
+                        DrawRectangleLines(
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, 25, 
+                            25, LIME);
 
                         /*
-                                                DrawTexture(galifaca, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, BLACK);
+                            DrawTexture(galifaca, 
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, BLACK);
                          */
                     } else {
                         /* Lowercase 'z' for AI-controlled zombie agent. */
-                        DrawRectangleLines(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, DARKGREEN);
+                        DrawRectangleLines(
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, 25, 
+                            25, DARKGREEN);
 
                         /*
-                                                DrawTexture(galifaca, x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
+                            DrawTexture(galifaca, 
+                            x * (GetScreenWidth() / sw->xdim) + 10, 
+                            y * (GetScreenHeight() / sw->ydim) + 5, WHITE);
                          */
 
                     }
                     /* Print the agent ID in front of the 'h'/'H'. */
-                    DrawText(FormatText("%02d", ag_id), x * (GetScreenWidth() / sw->xdim) + 15, y * (GetScreenHeight() / sw->ydim) + 10, 17, GREEN);
+                    DrawText(FormatText("%02d", ag_id), 
+                    x * (GetScreenWidth() / sw->xdim) + 15, 
+                    y * (GetScreenHeight() / sw->ydim) + 10, 17, GREEN);
                     break;
 
                     /* Print '?' if unknown type detected. This should *never*
                        happen. */
                 default:
-                    DrawRectangle(x * (GetScreenWidth() / sw->xdim) + 10, y * (GetScreenHeight() / sw->ydim) + 5, 25, 25, MAGENTA);
+                    DrawRectangle(
+                        x * (GetScreenWidth() / sw->xdim) + 10, 
+                        y * (GetScreenHeight() / sw->ydim) + 5, 
+                        25, 25, MAGENTA);
 
             }
         }

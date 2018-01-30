@@ -25,7 +25,8 @@
  *
  * @author Nuno Fachada
  * @date 2018
- * @copyright [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl.html)
+ * @copyright [GNU General Public License version 3 
+ * (GPLv3)](http://www.gnu.org/licenses/gpl.html)
  * */
 
 #ifndef SHOWWORLD_H
