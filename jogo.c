@@ -76,7 +76,7 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
 /** Receives the information about the agent, calculates it with
 * the closest agent and will decide if it'll move away or closer to
 * said agent, also checking for collision, infecting it */
-void distancia(int *x, int *y, int xNovo, int yNovo, int typeA,
+void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
         AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
         struct agentID *agents, int nagents);
 
@@ -240,21 +240,22 @@ int main(int argc, char **argv) {
 
             	/** Waits for an input that corresponds to one of the numbers
             	* previously defined */
-                while (seta != 1 || seta != 2 || seta != 3 || seta != 4 || 
-                	seta != 6 || seta != 7 || seta != 8 || seta != 9) {
+                while (seta != 1 || seta != 2 || seta != 3 || seta != 4 ||
+                    seta != 5 || seta != 6 || seta != 7 || seta != 8 || 
+                    seta != 9) {
 
                 	/** It'll print the instructions for the input */
                     printf("Use as setas para se mexer\n");
                     scanf("%d", &seta);
                     /** It'll save in xMexe and yMexe the value of the original
-                    * x and y */
+                    * x and y of the agent */
                     xMexe = agents[na].x;
                     yMexe = agents[na].y;
+                    /** These are the keys to make the agent move */
                     switch (seta) {
                         case 1:
                             xMexe--;
                             yMexe++;
-
                             break;
                         case 2:
                             yMexe++;
@@ -265,6 +266,8 @@ int main(int argc, char **argv) {
                             break;
                         case 4:
                             xMexe--;
+                            break;
+                        case 5:
                             break;
                         case 6:
                             xMexe++;
@@ -281,127 +284,176 @@ int main(int argc, char **argv) {
                             yMexe--;
                             break;
                     }
+
+                    /** This will check if we move outside of the grid */
                     toroidal(&xMexe, &yMexe, &toro, &na);
 
+                    /** Verifies if the agent can move to its desired place,
+                    * erasing its previous place, because we use a new agent,
+                    * so we have to erase the old one */
                     if (world_get(w, xMexe, yMexe) == NULL) {
                         agents[na].x = xMexe;
                         agents[na].y = yMexe;
                         apagar = 1;
 
+                    /** This will only run if there is something in the position
+                    * it wants to go */
                     } else {
+                        /** It will run through all agents, until it reaches the
+                        * total */
                         for (aNovo = 0; aNovo < nagents; aNovo++) {
+                            /** This will look through the agents and see which
+                            * kind of agent is present within x and y */
                             if (xMexe == agents[aNovo].x &&
                             	yMexe == agents[aNovo].y && agents[na].type !=
                             	agents[aNovo].type) {
+                                /** This will check if the agent is a human
+                                * and if the other is a zombie */
                                 if (agents[aNovo].type == Human &&
-                                	agents[na].type == 2) {
-                                    agents[aNovo].type = 2;
+                                	agents[na].type == Zombie) {
+                                    /** If it's a human, it'll transform into
+                                    * a zombie */
+                                    agents[aNovo].type = Zombie;
+                                    /** It'll get the coordinates of the
+                                    infected agent and store it in *a2 */
                                     AGENT *a2 = world_get(w, agents[aNovo].x,
                                     	agents[aNovo].y);
+                                    /** This will change the type of agent */
                                     mudar_agent_type(agents[aNovo].type,
                                     	(AGENT *) a2);
+                                    /** This will put the newly transformed
+                                    * agent into the world */
                                     world_put(w, agents[aNovo].x,
                                     	agents[aNovo].y, (ITEM *) a2);
+                                    /** This will release the memory saved */
                                     free(a2);
 
                                 }
                             }
-
                         }
-
                     }
-
-
-
-                    goto movela;
+                    /** This is a last resort to make it work without
+                    * having to use so many ifs and elses */
+                    goto moveIt;
 
                 }
+            /** It'll only enter this is the agent isn't playable, it works
+            * based on a highly advanced artifical intelligence */
             } else {
 
-                /* TEST ---- TODO */
+                /** Starting at 1, it'll search around the original agent,
+                * incrementing the radius by 1 until it finds it */
                 for (int i = 1; i <= 10; i++) {
+                    /** It'll always move 2 steps, following i's size, around
+                    * the agent, using the switch (move)
+                    * We chose this method because it would be more practical,
+                    * making it lighter for the processor */
                     for (int j = 1; j <= 2; j++) {
+                        /** We used if and else to run counter clock-wise,
+                        * and when it runs all the way, it'll restart */
                         if (move == 4) {
                             move = 1;
                         } else move += 1;
+                        /** This will move in (move) i times */
                         for (int block = 1; block <= i; block++) {
                             switch (move) {
                                 case 1:
-                                    // Mexe para a direita i vezes
+                                    /** Moves to the right i times */
                                     xNovo += 1;
                                     break;
                                 case 2:
-                                    // Mexe para baixo i vezes
+                                    /** Moves down i times */
                                     yNovo += 1;
                                     break;
                                 case 3:
+                                    /** Moves to the left i times */
                                     xNovo -= 1;
                                     break;
                                 case 4:
-                                    // mexe para cima i vezes
+                                    /** Moves upwards i times */
                                     yNovo -= 1;
                                     break;
                             }
+                            /** By searching for the agent, it'll apply the
+                            * toroidal to our searching function if necessary */
                             toroidal(&xNovo, &yNovo, &toro, &na);
 
+                            /** Check if it finds anything */
                             if (w->grid[yNovo * w->xdim + xNovo] != NULL) {
+                                /** After it finds something, it'll compare if
+                                * it's from the same type, if it is, it'll
+                                * ignore, if it's not, it'll go after it */
                                 for (aNovo = 0; aNovo < nagents; aNovo++) {
+                                    /** Makes the comparison between the x and y
+                                    * that was found, and the want that wants
+                                    * to move */
                                     if (xNovo == agents[aNovo].x && yNovo == 
                                     	agents[aNovo].y && agents[na].type 
                                     	!= agents[aNovo].type) {
+                                        /** If our type is zombie, then we'll
+                                        * change typeA to 1 (zombie) */
                                         if (agents[na].type == Zombie) {
                                             typeA = 1;
                                         }
-
-                                        goto movela;
-
+                                        /** By default, it will change TypeA
+                                        * to 0(human) */
+                                        
+                                        /** This is a last resort to make it
+                                        * work without having to use so many
+                                        * ifs and elses */
+                                        goto moveIt;
                                     }
-
                                 }
                             }
                         }
                     }
                 }
             }
-
-movela:
-            printf("aaaaaaaaaaaaaaaaaa %d %d\n", agents[na].x, agents[na].y);
-
-
+/** A small shortcut to make it work */
+moveIt:
+            /** If the agent isn't playable, it'll call the AI function */
             if (agents[na].ply == 0) {
-                distancia(&agents[na].x, &agents[na].y, agents[aNovo].x, 
+                AI(&agents[na].x, &agents[na].y, agents[aNovo].x, 
                 	agents[aNovo].y, typeA, &agents[na].type, toro, w, na, 
                 	&apagar, agents, nagents);
             }
-
+            /** It'll create a new agent with the na's type, playability,
+            * and id */
             AGENT *a1 = agent_new(agents[na].type, agents[na].ply, 
             	agents[na].id);
 
+            /** If the variable is 1(true), it'll delete the agent, meaning it
+            * moved */
             if (apagar == 1) {
                 world_apagar(w, xPrincipal, yPrincipal);
             }
+            /** This will place the new agent in the respective coordinates */
             world_put(w, agents[na].x, agents[na].y, (ITEM *) a1);
-            printf("Pressione ENTER para o seguinte turno...");
+            printf("Carregue no ENTER para ir para o turno seguinte");
 
+            /** It'll wait for the player's input, otherwise you won't see
+            * anything */
             getchar();
 
+            /** It'll take w(world) and turn it into a sw(showworld), making it
+            * slightly prettier to look at */
             showworld_update(sw, w);
-
         }
     }
-
-
-    //showworld_update(sw, w);
-
+    /** After the for has finished running, it'll destroy the world */
     showworld_destroy(sw);
     world_destroy_full(w, (void (*)(ITEM *))agent_destroy);
     return 0;
 }
 
+/** This is a function that will read from ini.c and ini.h and it'll save in 
+* the structure pconfig */
 static int handler(void* user, const char* section, const char* name,
         const char* value) {
     configuration* pconfig = (configuration*) user;
 
+/** This will read from the config.ini the section and name, and will save
+* in the structure pconfig the corresponding variables */
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("dim", "xdim")) {
         pconfig->xdim = atoi(value);
@@ -434,7 +486,7 @@ static int handler(void* user, const char* section, const char* name,
  *
  * @note This is an example which will probably not work in a fully functional
  * game. Students should develop their own implementation of
- * ::get_agent_info_at() and agent/world data structures.
+ * ::get_agent_info_at() and agent/world data structures. 
  *
  * @param w Generic pointer to object representing the simulation world.
  * @param x Horizontal coordinate of the simulation world from where to fetch
@@ -447,57 +499,59 @@ static int handler(void* user, const char* section, const char* name,
  * */
 unsigned int example_get_ag_info(void *w, unsigned int x, unsigned int y) {
 
-    /* The agent information to return. */
+    /** The agent information to return. */
     unsigned int ag_info = 0;
 
-    /* Convert generic pointer to world to a WORLD object. */
+    /** Convert generic pointer to world to a WORLD object. */
     WORLD *my_world = (WORLD *) w;
 
-    /* Check if the given (x,y) coordinates are within bounds of the world. */
+    /** Check if the given (x,y) coordinates are within bounds of the world. */
     if ((x >= my_world->xdim) || (y >= my_world->ydim)) {
 
-        /* If we got here, then the coordinates are off bounds. As such we will
-           report that the requested agent is of unknown type. No need to
-           specify agent ID or playable status, since the agent is unknown. */
+        /** If we got here, then the coordinates are off bounds. As such we will
+        * report that the requested agent is of unknown type. No need to
+        * specify agent ID or playable status, since the agent is unknown. */
         ag_info = Unknown;
 
     } else {
 
-        /* Given coordinates are within bounds, let's get and pack the request
-           agent information. */
+        /** Given coordinates are within bounds, let's get and pack the request
+        * agent information. */
 
-        /* Obtain agent at specified coordinates. */
+        /** Obtain agent at specified coordinates. */
         AGENT *ag = (AGENT *) world_get(my_world, x, y);
 
-        /* Is there an agent at (x,y)? */
+        /** Is there an agent at (x,y)? */
         if (ag == NULL) {
 
-            /* If there is no agent at the (x,y) coordinates, set agent type to
-               None. No need to specify agent ID or playable status, since
-               there is no agent here. */
+            /** If there is no agent at the (x,y) coordinates, set agent type to
+            * None. No need to specify agent ID or playable status, since
+            * there is no agent here. */
             ag_info = None;
 
         } else {
 
-            /* If we get here it's because there is an agent at (x,y). Bit-pack
-               all the agent information as specified by the get_agent_info_at
-               function pointer definition. */
+            /** If we get here it's because there is an agent at (x,y). Bit-pack
+            * all the agent information as specified by the get_agent_info_at
+            * function pointer definition. */
             ag_info = (ag->id << 3) | (ag->playable << 2) | ag->type;
-
         }
-
     }
-
     /* Return the requested agent information. */
     return ag_info;
-
 }
 
+/** Function that will check if the agent surpasses the map's limits, changing
+* to its correct place if it does
+* x and y are the places it will want to pass
+* toro is too see if it surpasses the limit or not 
+* na is the agent's number */
 void toroidal(int *x, int *y, int *toro, int *na) {
     int ax = *x;
     int ay = *y;
 
-    if (ax > 19) {
+    /** If ax(agent's x) is bigger than the grid, it'll go back to 0 */
+    if (ax > config.xdim - 1) {
         ax = 0;
         if (na1 != *na) {
             if (*(toro) == 0) {
@@ -506,9 +560,12 @@ void toroidal(int *x, int *y, int *toro, int *na) {
                 *(toro) = 0;
             }
         }
+        /** Ask male Leia later */
         na1 = *na;
+
+        /** If ax is lower than 0, it'll go back to config.xdim - 1 */
     } else if (ax < 0) {
-        ax = 19;
+        ax = config.xdim - 1;
         if (na1 != *na) {
             if (*(toro) == 0) {
                 *(toro) = 1;
@@ -518,8 +575,9 @@ void toroidal(int *x, int *y, int *toro, int *na) {
         }
         na1 = *na;
     }
+    /** If ax(agent's x) is bigger than the grid, it'll go back to 0 */
     if (ay < 0) {
-        ay = 19;
+        ay = config.ydim - 1;
         if (na1 != *na) {
             if (*(toro) == 0) {
                 *(toro) = 1;
@@ -528,7 +586,9 @@ void toroidal(int *x, int *y, int *toro, int *na) {
             }
         }
         na1 = *na;
-    } else if (ay > 19) {
+
+    /** If ax is lower than 0, it'll go back to config.ydim - 1 */
+    } else if (ay > config.ydim - 1) {
         ay = 0;
         if (na1 != *na) {
             if (*(toro) == 0) {
@@ -539,7 +599,8 @@ void toroidal(int *x, int *y, int *toro, int *na) {
         }
         na1 = *na;
     }
-    if (ay < 0 && ay > 19 && ax < 0 && ax > 19) {
+    /**  */
+    if (ay < 0 && ay > config.ydim - 1 && ax < 0 && ax > config.xdim - 1) {
         *(toro) = 0;
         na1 -= 1;
     }
@@ -548,7 +609,8 @@ void toroidal(int *x, int *y, int *toro, int *na) {
     *y = ay;
 }
 
-void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein, int *movedir) {
+void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein,
+    int *movedir) {
 
     int dir = *movedir;
 
@@ -567,7 +629,7 @@ void MoveToroidal(int xN, int yN, int xNovo, int yNovo, int *movein, int *movedi
     *movedir = dir;
 }
 
-void distancia(int *x, int *y, int xNovo, int yNovo, int typeA,
+void AI(int *x, int *y, int xNovo, int yNovo, int typeA,
         AGENT_TYPE *agTypeAnt, int toro, WORLD *w, int na, int *apagar,
         struct agentID *agents, int nagents) {
     int xN = *x;
